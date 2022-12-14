@@ -103,12 +103,14 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+#.venv
 env/
-venv/
+#/venv/
 ENV/
 env.bak/
 venv.bak/
+# Gerald: Ich hab venv rausgenommen, aber nimm jetzt die Scripts dazu
+Scripts
 
 # Spyder project settings
 .spyderproject
