@@ -1,9 +1,21 @@
+#Imports we surely need
 from flask import Flask, render_template, abort, request, url_for, flash, redirect
+from forms import CourseForm
+
 
 # Wir definieren die App und einen Namen, der vom Filenamen übernommen wird.
 # The flash() function stores flashed messages in the client’s browser session, which requires setting a secret key. This secret key is used to secure sessions, which allow Flask to remember information from one request to another, such as moving from the new message page to the index page. The user can access the information stored in the session, but cannot modify it unless they have the secret key, so you must never allow anyone to access your secret key. See the Flask documentation for sessions for more information
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '3a6be9453b5623d2c6ae4789271af440554380051de68c47'
+app.config['SECRET_KEY'] = '9cfdb598bb32931ca09aa2e8807fa2e1c82868045c85fe07'
+
+courses_list = [{
+    'title': 'Python 101',
+    'description': 'Learn Python basics',
+    'price': 34,
+    'available': True,
+    'level': 'Beginner'
+    }]
+
 
 messages = [{'title': 'Nachricht 1',
              'content': 'Lena'},
@@ -11,9 +23,8 @@ messages = [{'title': 'Nachricht 1',
              'content': 'Lumos'}
             ]
 
-
  # You use the @app.route() decorator to create a view function called index(), which calls the render_template() function as the return value, which in turn renders a template called index.html
-@app.route('/')
+@app.route('/', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')
 
@@ -37,16 +48,6 @@ def Webform():
 @app.route('/about/')
 def about():
     return render_template('about.html')
-
-#@app.route('/comments/')
-#def comments():
-#    comments = ['This is the first comment.',
-#                'This is the second comment.',
-#                'This is the third comment.',
-#                'This is the fourth comment.'
-#                ]
-#    return render_template('comments.html', comments=comments)
-
 
 #In the route below, you have a URL variable idx. This is the index that will determine what message will be displayed. For example, if the URL is /messages/0, the first message (Message Zero) will be displayed. You use the int converter to accept only positive integers, because URL variables have string values by default.
 #
@@ -82,6 +83,24 @@ def create():
             flash('Content is required!')
         else:
             messages.append({'title': title, 'content': content})
-            return redirect(url_for('index'))
+            return redirect(url_for('Webform'))
 
     return render_template('create.html')
+
+@app.route('/courses/')
+def courses():
+    return render_template('courses.html', courses_list=courses_list)
+
+
+@app.route('/addCourse/', methods=('GET', 'POST'))
+def addCourse():
+    form = CourseForm()
+    if form.validate_on_submit():
+        courses_list.append({'title': form.title.data,
+                             'description': form.description.data,
+                             'price': form.price.data,
+                             'available': form.available.data,
+                             'level': form.level.data
+                             })
+        return redirect(url_for('courses'))
+    return render_template('addCourse.html', form=form)
