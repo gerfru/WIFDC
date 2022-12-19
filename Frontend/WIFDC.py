@@ -1,6 +1,7 @@
 #Imports we surely need
 from flask import Flask, render_template, abort, request, url_for, flash, redirect
 from forms import CourseForm
+from DBConnector import connectDB
 
 
 # Wir definieren die App und einen Namen, der vom Filenamen übernommen wird.
@@ -104,3 +105,33 @@ def addCourse():
                              })
         return redirect(url_for('courses'))
     return render_template('addCourse.html', form=form)
+
+
+@app.route('/DBConnector/')
+def DBConnector():
+    conn, cur = connectDB('localhost', 'HCE')
+    cur.execute('select * from hce.Test_WIFDC.posts')
+    posts = cur.fetchall()
+    conn.close()
+    print(posts)
+    return render_template('DBConnector.html', posts=posts)
+
+@app.route('/createDBentry/', methods=('GET', 'POST'))
+def createDBentry():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+
+        if not title:
+            flash('Title is required!')
+        elif not content:
+            flash('Content is required!')
+        else:
+            conn, cur = connectDB('localhost', 'HCE')
+            strQuery = '''INSERT INTO hce.TEST_WIFDC.posts (title, content) VALUES ('{strTitle}','{strContent}')'''
+            cur.execute(strQuery.format(strTitle=title,strContent=content))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('DBConnector'))
+
+    return render_template('createDBentry.html')
