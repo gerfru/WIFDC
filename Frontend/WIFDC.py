@@ -135,3 +135,55 @@ def createDBentry():
             return redirect(url_for('DBConnector'))
 
     return render_template('createDBentry.html')
+
+
+def get_post(post_id):
+    
+    conn, cur = connectDB('localhost', 'HCE')
+    strQuery = '''SELECT * FROM hce.test_WIFDC.posts WHERE id = {intID} '''
+    cur.execute(strQuery.format(intID=post_id))
+    post = cur.fetchone()
+    print(post)
+    conn.close()
+    if post is None:
+        abort(404)
+    return post
+
+
+@app.route('/<int:id>/edit/', methods=('GET', 'POST'))
+def edit(id):
+    #print("ID = ", id)
+    post = get_post(id)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+
+        if not title:
+            flash('Title is required!')
+
+        elif not content:
+            flash('Content is required!')
+
+        else:
+            conn, cur = connectDB('localhost', 'HCE')
+            strQuery = '''UPDATE hce.Test_WIFDC.posts SET title = '{strTitle}', content = '{strContent}' WHERE ID = {intID} '''
+            cur.execute(strQuery.format(strTitle=title, strContent=content, intID = id))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('DBConnector'))
+
+    return render_template('edit.html', post=post)
+
+
+@app.route('/<int:id>/delete/', methods=('POST',))
+def delete(id):
+    post = get_post(id)
+    print("ID = ", id)
+    conn, cur = connectDB('localhost', 'HCE')
+    strQuery = '''DELETE FROM hce.Test_WIFDC.posts where ID = {intID}'''
+    cur.execute(strQuery.format(intID=id))
+    conn.commit()
+    conn.close()
+    flash('"{}" was successfully deleted!'.format(post['title']))
+    return redirect(url_for('DBConnector'))
